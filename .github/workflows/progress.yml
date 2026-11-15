@@ -3,24 +3,50 @@ on:
   workflow_dispatch:
   schedule:
     - cron: '0 15 * * *'
+  issues:
+    types: [opened, closed, reopened, deleted]
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/progress.yml'
+      - 'scripts/progress.py'
 permissions:
   contents: write
   issues: read
+  pages: write
+  id-token: write
+concurrency:
+  group: pages
+  cancel-in-progress: false
 jobs:
   snapshot:
     runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
       - run: pip install -r requirements.txt
-      - run: python scripts/progress.py
+      - name: Capture current issue state
+        run: python scripts/progress.py
         env:
           GH_TOKEN: ${{ github.token }}
-      - run: |
+      - name: Save observed progress
+        run: |
           git config user.name github-actions[bot]
           git config user.email 41898282+github-actions[bot]@users.noreply.github.com
           git add data/project site/burndown.html
-          git diff --staged --quiet || git commit -m "Capture observed issue progress"
-          git push
+          if ! git diff --staged --quiet; then
+            git commit -m "Capture observed issue progress"
+            git push
+          fi
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
+      - name: Publish dashboard and burndown
+        id: deployment
+        uses: actions/deploy-pages@v4
