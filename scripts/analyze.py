@@ -51,6 +51,8 @@ def build():
   for col in w.columns:w.column_dimensions[col[0].column_letter].width=22
  w=wb.create_sheet('Formulas');w.append(['year','mean change primary, %','premium, %','real primary, %','real secondary, %'])
  for i in range(2,len(d)+2):w.append([f'=Data!A{i}',None if i==2 else f'=(Data!B{i}/Data!B{i-1}-1)*100',f'=(Data!B{i}/Data!C{i}-1)*100',f'=(Data!D{i}/(100+Data!F{i})-1)*100',f'=(Data!E{i}/(100+Data!F{i})-1)*100'])
+ import runpy
+ runpy.run_path(str(R/'scripts/excel_presentation.py'))['enhance'](wb,d,summary)
  wb.save(R/'reports/market.xlsx')
  html='<html lang="ru"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Рынок жилья России</title><script src="plotly.min.js"></script><style>body{font:17px Arial;max-width:1100px;margin:auto;padding:20px;color:#17324d}table{width:100%}td,th{padding:8px}</style><h1>Рынок жилья России, 2019–2024</h1><p>Чичилов Кирилл · ЧЛБ25-ИУП-БИ01</p><p>Индекс не равен отношению средних цен. Ставка — декабрьская. Корреляции по шести годам не доказывают причинность. S1 не включает Крым и Севастополь.</p>'
  for title,columns in [('Средние цены, тыс. руб./м²',['primary','secondary']),('Прирост индексов и инфляция, %',['primary_index_growth','secondary_index_growth','inflation']),('Реальные приросты, %',['primary_real_growth','secondary_real_growth']),('Макрофакторы, %',['inflation','key_rate'])]:
