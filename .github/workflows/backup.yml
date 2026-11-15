@@ -1,0 +1,26 @@
+name: Weekly verified backup
+on:
+  schedule:
+    - cron: '0 3 * * 1'
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: pip install -r requirements.txt
+      - run: python scripts/analyze.py
+      - run: python scripts/backup.py
+      - name: Publish verified archive
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          TAG="backup-$(date -u +%Y%m%d-%H%M%S)-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
+          gh release create "$TAG" backup/project.zip backup/history.bundle backup/checksums.json backup/restore.json --title "$TAG" --notes "SHA256, ZIP, tests, recalculation and Git bundle verified. Wiki, Issues, Discussions and Projects are not included."
