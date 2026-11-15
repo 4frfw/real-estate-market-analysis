@@ -54,11 +54,11 @@ def build():
  import runpy
  runpy.run_path(str(R/'scripts/excel_presentation.py'))['enhance'](wb,d,summary)
  wb.save(R/'reports/market.xlsx')
- html='<html lang="ru"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Рынок жилья России</title><script src="plotly.min.js"></script><style>body{font:17px Arial;max-width:1100px;margin:auto;padding:20px;color:#17324d}table{width:100%}td,th{padding:8px}</style><h1>Рынок жилья России, 2019–2024</h1><p>Чичилов Кирилл · ЧЛБ25-ИУП-БИ01</p><p>Индекс не равен отношению средних цен. Ставка — декабрьская. Корреляции по шести годам не доказывают причинность. S1 не включает Крым и Севастополь.</p>'
+ html='<html lang="ru"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Рынок жилья России</title><script src="plotly.min.js"></script><style>body{font:17px Arial;max-width:1100px;margin:auto;padding:20px;color:#17324d}table{width:100%}td,th{padding:8px}</style><h1>Рынок жилья России, 2019–2024</h1><p>Чичилов Кирилл · ЧЛБ25-ИУП-БИ01</p><p>Индекс не равен отношению средних цен. Ставка — декабрьская. Корреляции по шести годам не доказывают причинность.</p>'
  for title,columns in [('Средние цены, тыс. руб./м²',['primary','secondary']),('Прирост индексов и инфляция, %',['primary_index_growth','secondary_index_growth','inflation']),('Реальные приросты, %',['primary_real_growth','secondary_real_growth']),('Макрофакторы, %',['inflation','key_rate'])]:
   fig=go.Figure()
   for col in columns:fig.add_trace(go.Scatter(x=d.year.tolist(),y=d[col].tolist(),name=col,mode='lines+markers'))
-  fig.update_layout(title=title,template='plotly_white',xaxis_rangeslider_visible=True,legend=dict(orientation='h'))
+  fig.update_layout(title=dict(text=title.replace(', ', '<br>'),x=0.02,y=0.98,font=dict(size=18)),template='plotly_white',height=700,margin=dict(t=110,b=240,l=70,r=30),xaxis=dict(rangeslider=dict(visible=True,thickness=0.12)),legend=dict(orientation='v',yanchor='top',y=-0.45,xanchor='left',x=0))
   html+=fig.to_html(full_html=False,include_plotlyjs=False)
  html+='<h2>Корреляции</h2>'+corr.to_html(index=False)+'<h2>Сценарии, не предложения банков</h2>'+scen.to_html(index=False)+'<h2>Источники</h2><p>Полные URL и происхождение: data/sources.md. Это исторический срез, не рынок 2026 года.</p></html>'
  (R/'site/index.html').write_text(html,encoding='utf-8');(R/'site/plotly.min.js').write_text(get_plotlyjs(),encoding='utf-8');(R/'site/.nojekyll').touch()
